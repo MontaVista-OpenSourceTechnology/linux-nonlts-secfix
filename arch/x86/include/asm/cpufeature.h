@@ -170,6 +170,9 @@
 #define X86_FEATURE_FLEXPRIORITY (8*32+ 2) /* Intel FlexPriority */
 #define X86_FEATURE_EPT         (8*32+ 3) /* Intel Extended Page Table */
 #define X86_FEATURE_VPID        (8*32+ 4) /* Intel Virtual Processor ID */
+#define X86_FEATURE_HLE		(9*32+ 4) /* Hardware Lock Elision */
+#define X86_FEATURE_INVPCID	(9*32+10) /* Invalidate Processor Context ID */
+#define X86_FEATURE_RTM		(9*32+11) /* Restricted Transactional Memory */
 
 #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
 
