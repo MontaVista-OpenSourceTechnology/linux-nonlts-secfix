@@ -3,6 +3,8 @@
 
 #ifdef __KERNEL__
 
+#include <linux/init.h>
+
 #define COMMAND_LINE_SIZE 2048
 
 #ifdef __i386__
