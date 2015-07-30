@@ -122,7 +122,7 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 		 * load the LDT, if the LDT is different:
 		 */
 		if (unlikely(prev->context.ldt != next->context.ldt))
-			load_LDT_nolock(next);
+			load_mm_ldt(next);
 	} else {
 		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
 		BUG_ON(percpu_read(cpu_tlbstate.active_mm) != next);
@@ -136,7 +136,7 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 			 * fills with respect to the mm_cpumask write.
 			 */
 			load_cr3(next->pgd);
-			load_LDT_nolock(next);
+			load_mm_ldt(next);
 		}
 	}
 }

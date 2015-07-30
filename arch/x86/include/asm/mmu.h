@@ -9,8 +9,7 @@
  * we put the segment information here.
  */
 typedef struct {
-	void *ldt;
-	int size;
+	struct ldt_struct *ldt;
 	struct mutex lock;
 	void *vdso;
 } mm_context_t;
