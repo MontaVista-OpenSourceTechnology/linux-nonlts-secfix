@@ -1699,6 +1699,8 @@ and is between 256 and 4096 characters. It is defined in the file
 
 	nointroute	[IA-64]
 
+	noinvpcid	[X86] Disable the INVPCID cpu feature.
+
 	nojitter	[IA64] Disables jitter checking for ITC timers.
 
 	nolapic		[X86-32,APIC] Do not enable or use the local APIC.
