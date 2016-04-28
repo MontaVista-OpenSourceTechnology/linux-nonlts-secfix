@@ -4,6 +4,7 @@
  */
 
 #include <linux/mm.h>
+#include <linux/sched.h>
 #include <linux/mmu_context.h>
 #include <linux/sched.h>
 
