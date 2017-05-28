@@ -15,7 +15,7 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate)
 			= { &init_mm, 0, };
 
 /*
- *	Smarter SMP flushing macros.
+ *	TLB flushing, formerly SMP-only
  *		c/o Linus Torvalds.
  *
  *	These mean you can really definitely utterly forget about
@@ -35,8 +35,6 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate)
  *	In future when interrupts are split into per CPU domains this could be
  *	fixed, at the cost of triggering multiple IPIs in some cases.
  */
-
-#ifdef CONFIG_SMP
 
 union smp_flush_state {
 	struct {
@@ -67,8 +65,6 @@ void leave_mm(int cpu)
 }
 EXPORT_SYMBOL_GPL(leave_mm);
 
-#endif /* CONFIG_SMP */
-
 void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	       struct task_struct *tsk)
 {
@@ -85,10 +81,8 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 	unsigned cpu = smp_processor_id();
 
 	if (likely(prev != next)) {
-#ifdef CONFIG_SMP
 		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
 		percpu_write(cpu_tlbstate.active_mm, next);
-#endif
 		cpumask_set_cpu(cpu, mm_cpumask(next));
 
 		/*
@@ -129,9 +123,7 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 		 */
 		if (unlikely(prev->context.ldt != next->context.ldt))
 			load_LDT_nolock(next);
-	}
-#ifdef CONFIG_SMP
-	else {
+	} else {
 		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
 		BUG_ON(percpu_read(cpu_tlbstate.active_mm) != next);
 
@@ -147,10 +139,7 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 			load_LDT_nolock(next);
 		}
 	}
-#endif
 }
-
-#ifdef CONFIG_SMP
 
 /*
  *
@@ -255,6 +244,7 @@ out:
 static void flush_tlb_others_ipi(const struct cpumask *cpumask,
 				 struct mm_struct *mm, unsigned long va)
 {
+#ifdef CONFIG_SMP
 	unsigned int sender;
 	union smp_flush_state *f;
 
@@ -286,6 +276,7 @@ static void flush_tlb_others_ipi(const struct cpumask *cpumask,
 	f->flush_mm = NULL;
 	f->flush_va = 0;
 	spin_unlock(&f->tlbstate_lock);
+#endif
 }
 
 void native_flush_tlb_others(const struct cpumask *cpumask,
@@ -395,5 +386,3 @@ void flush_tlb_all(void)
 {
 	on_each_cpu(do_flush_tlb_all, NULL, 1);
 }
-
-#endif /* CONFIG_SMP */
