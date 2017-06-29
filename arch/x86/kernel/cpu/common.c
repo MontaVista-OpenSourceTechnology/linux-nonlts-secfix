@@ -281,6 +281,35 @@ static inline void squash_the_stupid_serial_number(struct cpuinfo_x86 *c)
 }
 #endif
 
+#ifdef CONFIG_X86_64
+#define X86_64_ENABLED	1
+#else
+#define X86_64_ENABLED	0
+#endif
+
+static void setup_pcid(struct cpuinfo_x86 *c)
+{
+	if (cpu_has(c, X86_FEATURE_PCID)) {
+		if (cpu_has(c, X86_FEATURE_PGE) && X86_64_ENABLED) {
+			/*
+			 * Regardless of whether PCID is enumerated, the
+			 * SDM says that it can't be enabled in 32-bit mode.
+			 */
+			set_in_cr4(X86_CR4_PCIDE);
+		} else {
+			/*
+			 * flush_tlb_all(), as currently implemented, won't
+			 * work if PCID is on but PGE is not.  Since that
+			 * combination doesn't exist on real hardware, there's
+			 * no reason to try to fully support it, but it's
+			 * polite to avoid corrupting data if we're on
+			 * an improperly configured VM.
+			 */
+			clear_cpu_cap(c, X86_FEATURE_PCID);
+		}
+	}
+}
+
 /*
  * Some CPU features depend on higher CPUID levels, which may not always
  * be available due to CPUID level capping or broken virtualization
@@ -825,6 +854,9 @@ static void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
 	/* Disable the PN if appropriate */
 	squash_the_stupid_serial_number(c);
 
+	/* Set up PCID */
+	setup_pcid(c);
+
 	/*
 	 * The vendor-specific functions might have changed features.
 	 * Now we do "generic changes."
@@ -913,11 +945,6 @@ void __cpuinit identify_secondary_cpu(struct cpuinfo_x86 *c)
 	BUG_ON(c == &boot_cpu_data);
 	identify_cpu(c);
 #ifdef CONFIG_X86_32
-	/*
-	 * Regardless of whether PCID is enumerated, the SDM says
-	 * that it can't be enabled in 32-bit mode.
-	 */
-	clear_cpu_cap(c, X86_FEATURE_PCID);
 	enable_sep_cpu();
 #endif
 	mtrr_ap_init();
