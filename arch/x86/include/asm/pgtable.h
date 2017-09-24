@@ -17,6 +17,12 @@
 
 #ifndef __ASSEMBLY__
 
+#ifdef CONFIG_KAISER
+extern int kaiser_enabled;
+#else
+#define kaiser_enabled 0
+#endif
+
 /*
  * ZERO_PAGE is a global shared page that is always zero: used
  * for zero-mapped memory areas etc..
@@ -216,6 +222,13 @@ static inline pte_t pte_clrglobal(pte_t pte)
 static inline pte_t pte_mkspecial(pte_t pte)
 {
 	return pte_set_flags(pte, _PAGE_SPECIAL);
+}
+
+static inline pmd_t pmd_clear_flags(pmd_t pmd, pmdval_t clear)
+{
+	pmdval_t v = native_pmd_val(pmd);
+
+	return __pmd(v & ~clear);
 }
 
 /*
@@ -485,7 +498,7 @@ static inline int pgd_bad(pgd_t pgd)
 	 * page table by accident; it will fault on the first
 	 * instruction it tries to run.  See native_set_pgd().
 	 */
-	if (KAISER_ENABLED)
+	if (kaiser_enabled)
 		ignore_flags |= _PAGE_NX;
 
 	return (pgd_flags(pgd) & ~ignore_flags) != _KERNPG_TABLE;
@@ -629,12 +642,14 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm,
  */
 static inline void clone_pgd_range(pgd_t *dst, pgd_t *src, int count)
 {
-       memcpy(dst, src, count * sizeof(pgd_t));
+	memcpy(dst, src, count * sizeof(pgd_t));
 #ifdef CONFIG_KAISER
-	/* Clone the shadow pgd part as well */
-	memcpy(native_get_shadow_pgd(dst),
-	       native_get_shadow_pgd(src),
-	       count * sizeof(pgd_t));
+	if (kaiser_enabled) {
+		/* Clone the shadow pgd part as well */
+		memcpy(native_get_shadow_pgd(dst),
+			native_get_shadow_pgd(src),
+			count * sizeof(pgd_t));
+	}
 #endif
 }
 

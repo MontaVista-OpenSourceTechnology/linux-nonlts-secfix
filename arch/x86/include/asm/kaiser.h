@@ -71,9 +71,9 @@ movq PER_CPU_VAR(unsafe_stack_register_backup), %rax
 
 #else /* CONFIG_KAISER */
 
-.macro SWITCH_KERNEL_CR3 reg
+.macro SWITCH_KERNEL_CR3
 .endm
-.macro SWITCH_USER_CR3 reg regb
+.macro SWITCH_USER_CR3
 .endm
 .macro SWITCH_KERNEL_CR3_NO_STACK
 .endm
@@ -86,7 +86,6 @@ movq PER_CPU_VAR(unsafe_stack_register_backup), %rax
 
 #ifdef CONFIG_KAISER
 
-#define KAISER_ENABLED	1
 /*
  * Upon kernel/user mode switch, it may happen that the address
  * space has to be switched before the registers have been
@@ -99,6 +98,16 @@ extern unsigned long x86_cr3_pcid_noflush;
 DECLARE_PER_CPU(unsigned long, x86_cr3_pcid_user);
 
 extern char __per_cpu_user_mapped_start[], __per_cpu_user_mapped_end[];
+
+extern int kaiser_enabled;
+#else
+#define kaiser_enabled	0
+#endif /* CONFIG_KAISER */
+
+/*
+ * Kaiser function prototypes are needed even when CONFIG_KAISER is not set,
+ * so as to build with tests on kaiser_enabled instead of #ifdefs.
+ */
 
 /**
  *  kaiser_add_mapping - map a virtual memory part to the shadow (user) mapping
@@ -128,10 +137,6 @@ extern void kaiser_remove_mapping(unsigned long start, unsigned long size);
  *  time mappings are permanent and never unmapped.
  */
 extern void kaiser_init(void);
-
-#else /* CONFIG_KAISER */
-#define KAISER_ENABLED	0
-#endif /* CONFIG_KAISER */
 
 #endif /* __ASSEMBLY */
 
