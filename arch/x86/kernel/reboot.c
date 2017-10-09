@@ -416,6 +416,12 @@ void machine_real_restart(const unsigned char *code, int length)
 	__asm__ __volatile__ ("ljmp $0x0008,%0"
 				:
 				: "i" ((void *)(0x1000 - sizeof (real_mode_switch) - 100)));
+
+#ifdef CONFIG_X86_64
+	/* Exiting long mode will fail if CR4.PCIDE is set. */
+	if (static_cpu_has(X86_FEATURE_PCID))
+		clear_in_cr4(X86_CR4_PCIDE);
+#endif
 }
 #ifdef CONFIG_APM_MODULE
 EXPORT_SYMBOL(machine_real_restart);
