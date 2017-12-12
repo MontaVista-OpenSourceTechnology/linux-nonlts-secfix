@@ -83,7 +83,7 @@ static struct irqaction irq2 = {
 	.name = "cascade",
 };
 
-DEFINE_PER_CPU(vector_irq_t, vector_irq) = {
+DEFINE_PER_CPU_USER_MAPPED(vector_irq_t, vector_irq) = {
 	[0 ... IRQ0_VECTOR - 1] = -1,
 	[IRQ0_VECTOR] = 0,
 	[IRQ1_VECTOR] = 1,

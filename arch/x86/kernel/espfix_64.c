@@ -41,6 +41,7 @@
 #include <asm/pgalloc.h>
 #include <asm/setup.h>
 #include <asm/espfix.h>
+#include <asm/kaiser.h>
 
 /*
  * Note: we only need 6*8 = 48 bytes for the espfix stack, but round
@@ -129,6 +130,14 @@ void __init init_espfix_bsp(void)
 	/* Install the espfix pud into the kernel page directory */
 	pgd_p = &init_level4_pgt[pgd_index(ESPFIX_BASE_ADDR)];
 	pgd_populate(&init_mm, pgd_p, (pud_t *)espfix_pud_page);
+	/*
+	 * Just copy the top-level PGD that is mapping the espfix
+	 * area to ensure it is mapped into the shadow user page
+	 * tables.
+	 */
+	if (KAISER_ENABLED)
+		set_pgd(native_get_shadow_pgd(pgd_p),
+			__pgd(_KERNPG_TABLE | __pa((pud_t *)espfix_pud_page)));
 
 	/* Randomize the locations */
 	init_espfix_random();
@@ -202,7 +211,7 @@ void init_espfix_ap(void)
 unlock_done:
 	mutex_unlock(&espfix_init_mutex);
 done:
-	per_cpu(espfix_stack, smp_processor_id()) = addr;
-	per_cpu(espfix_waddr, smp_processor_id()) =
-		(unsigned long)stack_page + (addr & ~PAGE_MASK);
+	percpu_write(espfix_stack, addr);
+	percpu_write(espfix_waddr, (unsigned long)stack_page
+		     + (addr & ~PAGE_MASK));
 }

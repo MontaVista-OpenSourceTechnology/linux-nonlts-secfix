@@ -70,6 +70,7 @@
 #include <linux/sfi.h>
 #include <linux/shmem_fs.h>
 #include <trace/boot.h>
+#include <linux/kaiser.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -515,6 +516,7 @@ static void __init mm_init(void)
 	kmem_cache_init();
 	pgtable_cache_init();
 	vmalloc_init();
+	kaiser_init();
 }
 
 asmlinkage void __init start_kernel(void)

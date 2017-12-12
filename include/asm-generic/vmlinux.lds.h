@@ -671,7 +671,14 @@
 	.data.percpu vaddr : AT(VMLINUX_SYMBOL(__per_cpu_load)		\
 				- LOAD_OFFSET) {			\
 		VMLINUX_SYMBOL(__per_cpu_start) = .;			\
+		VMLINUX_SYMBOL(__per_cpu_user_mapped_start) = .;	\
 		*(.data.percpu.first)					\
+		*(.data.percpu.user_mapped)				\
+		*(.data.percpu.user_mapped.shared_aligned)		\
+		. = ALIGN(PAGE_SIZE);					\
+		*(.data.percpu.user_mapped.page_aligned)		\
+		VMLINUX_SYMBOL(__per_cpu_user_mapped_end) = .;		\
+		. = ALIGN(PAGE_SIZE);					\
 		*(.data.percpu.page_aligned)				\
 		*(.data.percpu)						\
 		*(.data.percpu.shared_aligned)				\
@@ -697,7 +704,14 @@
 	.data.percpu	: AT(ADDR(.data.percpu) - LOAD_OFFSET) {	\
 		VMLINUX_SYMBOL(__per_cpu_load) = .;			\
 		VMLINUX_SYMBOL(__per_cpu_start) = .;			\
+		VMLINUX_SYMBOL(__per_cpu_user_mapped_start) = .;	\
 		*(.data.percpu.first)					\
+		*(.data.percpu.user_mapped)				\
+		*(.data.percpu.user_mapped.shared_aligned)		\
+		. = ALIGN(PAGE_SIZE);					\
+		*(.data.percpu.user_mapped.page_aligned)		\
+		VMLINUX_SYMBOL(__per_cpu_user_mapped_end) = .;		\
+		. = ALIGN(PAGE_SIZE);					\
 		*(.data.percpu.page_aligned)				\
 		*(.data.percpu)						\
 		*(.data.percpu.shared_aligned)				\
