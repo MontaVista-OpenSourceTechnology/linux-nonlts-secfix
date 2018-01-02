@@ -161,19 +161,6 @@ static int __init x86_pcid_setup(char *s)
 	return 1;
 }
 __setup("nopcid", x86_pcid_setup);
-
-static int __init x86_nokaiser_setup(char *s)
-{
-	/* nokaiser doesn't accept parameters */
-	if (s)
-		return -EINVAL;
-#ifdef CONFIG_KAISER
-	kaiser_enabled = 0;
-	pr_info("nokaiser: KAISER feature disabled\n");
-#endif
-	return 0;
-}
-early_param("nokaiser", x86_nokaiser_setup);
 #endif
 
 static int __init x86_noinvpcid_setup(char *s)

@@ -406,3 +406,16 @@ void kaiser_flush_tlb_on_return_to_user(void)
 		     X86_CR3_PCID_USER_FLUSH | KAISER_SHADOW_PGD_OFFSET);
 }
 EXPORT_SYMBOL(kaiser_flush_tlb_on_return_to_user);
+
+static int __init x86_nokaiser_setup(char *s)
+{
+	/* nopti doesn't accept parameters */
+	if (s)
+		return -EINVAL;
+
+	kaiser_enabled = 0;
+	pr_info("Kernel/User page tables isolation: disabled\n");
+
+	return 0;
+}
+early_param("nopti", x86_nokaiser_setup);

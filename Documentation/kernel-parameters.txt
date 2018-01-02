@@ -1703,7 +1703,7 @@ and is between 256 and 4096 characters. It is defined in the file
 
 	nojitter	[IA64] Disables jitter checking for ITC timers.
 
-	nokaiser	[X86-64] Disable KAISER isolation of kernel from user.
+	nopti		[X86-64] Disable KAISER isolation of kernel from user.
 
 	nolapic		[X86-32,APIC] Do not enable or use the local APIC.
 
