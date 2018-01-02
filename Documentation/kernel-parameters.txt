@@ -2098,6 +2098,12 @@ and is between 256 and 4096 characters. It is defined in the file
 	pt.		[PARIDE]
 			See Documentation/blockdev/paride.txt.
 
+	pti=		[X86_64]
+			Control KAISER user/kernel address space isolation:
+			on - enable
+			off - disable
+			auto - default setting
+
 	pty.legacy_count=
 			[KNL] Number of legacy pty's. Overwrites compiled-in
 			default number.

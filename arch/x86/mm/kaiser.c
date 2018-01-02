@@ -20,6 +20,7 @@ extern struct mm_struct init_mm;
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
 #include <asm/desc.h>
+#include <asm/cmdline.h>
 
 int kaiser_enabled __read_mostly = 1;
 EXPORT_SYMBOL(kaiser_enabled);	/* for inlined TLB flush functions */
@@ -264,6 +265,38 @@ static void __init kaiser_init_all_pgds(void)
 	WARN_ON(__ret);							\
 } while (0)
 
+void __init kaiser_check_boottime_disable(void)
+{
+	char arg[5];
+	int ret;
+
+	ret = cmdline_find_option(boot_command_line, "pti", arg, sizeof(arg));
+	if (ret > 0) {
+		if (!strncmp(arg, "on", 2))
+			goto enable;
+
+		if (!strncmp(arg, "off", 3))
+			goto disable;
+
+		if (!strncmp(arg, "auto", 4))
+			goto skip;
+	}
+
+	if (cmdline_find_option_bool(boot_command_line, "nopti"))
+		goto disable;
+
+skip:
+	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+		goto disable;
+
+enable:
+	return;
+
+disable:
+	pr_info("Kernel/User page tables isolation: disabled\n");
+	kaiser_enabled = 0;
+}
+
 /*
  * If anything in here fails, we will likely die on one of the
  * first kernel->user transitions and init will die.  But, we
@@ -275,8 +308,11 @@ void __init kaiser_init(void)
 {
 	int cpu;
 
+	kaiser_check_boottime_disable();
+
 	if (!kaiser_enabled)
 		return;
+
 	kaiser_init_all_pgds();
 
 	for_each_possible_cpu(cpu) {
@@ -406,16 +442,3 @@ void kaiser_flush_tlb_on_return_to_user(void)
 		     X86_CR3_PCID_USER_FLUSH | KAISER_SHADOW_PGD_OFFSET);
 }
 EXPORT_SYMBOL(kaiser_flush_tlb_on_return_to_user);
-
-static int __init x86_nokaiser_setup(char *s)
-{
-	/* nopti doesn't accept parameters */
-	if (s)
-		return -EINVAL;
-
-	kaiser_enabled = 0;
-	pr_info("Kernel/User page tables isolation: disabled\n");
-
-	return 0;
-}
-early_param("nopti", x86_nokaiser_setup);
