@@ -24,7 +24,7 @@
 #define __PCPU_DUMMY_ATTRS						\
 	__attribute__((section(".discard"), unused))
 
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 #define USER_MAPPED_SECTION ".user_mapped"
 #else
 #define USER_MAPPED_SECTION ""
